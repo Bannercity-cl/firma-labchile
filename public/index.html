@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generador de Firma Laboratorio Chile</title>
+    <style>
+        body { font-family: Arial; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .container { display: flex; flex-direction: column; gap: 30px; }
+        @media (min-width: 768px) {
+            .container { flex-direction: row; }
+        }
+        .form-container { flex: 1; }
+        .preview-container { flex: 1; }
+        input, button { width: 100%; padding: 8px; margin-bottom: 10px; }
+        button { background: #003399; color: white; border: none; padding: 10px; cursor: pointer; }
+        button:hover { background: #002277; }
+        .firma-container {
+            margin: 20px 0;
+            padding: 10px;
+            background-color: white;
+            border: 2px dashed #aaa;
+            text-align: center;
+        }
+        .preview-box { 
+            width: 500px;
+            height: 170px;
+            position: relative;
+            margin: 0 auto;
+        }
+        .texto-firma {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 230px;
+            text-align: left;
+            z-index: 10;
+        }
+        .texto-firma p {
+            margin: 3px 0;
+            font-family: Arial, sans-serif;
+            color: #003399;
+        }
+        .nombre-texto {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 6px !important;
+        }
+        .cargo-texto, .telefono-texto, .email-texto {
+            font-size: 12px;
+        }
+        .instrucciones {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .metodo {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        #descargarBtn {
+            background-color: #28a745;
+            margin-top: 10px;
+            display: none;
+        }
+        .success-tip {
+            display: none;
+            background-color: #e8f5e9;
+            border: 1px solid #81c784;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 4px;
+            text-align: left;
+        }
+        .placeholder-message {
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+        .background-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 500px;
+            height: 170px;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <h1>Generador de Firma Laboratorio Chile</h1>
+    
+    <div class="container">
+        <div class="form-container">
+            <h2>Ingresa tus datos</h2>
+            
+            <label>Nombre completo:</label>
+            <input type="text" id="nombre" placeholder="Ej: María González">
+            
+            <label>Cargo:</label>
+            <input type="text" id="cargo" placeholder="Ej: Ejecutiva de Ventas">
+            
+            <label>Teléfono:</label>
+            <input type="text" id="telefono" placeholder="Ej: +56 9 8765 4321">
+            
+            <label>Email:</label>
+            <input type="email" id="email" placeholder="Ej: maria.gonzalez@laboratoriochile.cl">
+            
+            <button onclick="generarFirma()">Generar Mi Firma</button>
+        </div>
+        
+        <div class="preview-container">
+            <h2>Vista previa de la firma</h2>
+            
+            <div class="firma-container">
+                <div id="placeholderMessage" class="placeholder-message">
+                    Completa el formulario y haz clic en "Generar Mi Firma" para ver una vista previa
+                </div>
+                
+                <div id="vistaPrevia" style="display: none;"></div>
+                
+                <canvas id="firmaCanvas" width="500" height="170" style="display: none;"></canvas>
+                
+                <button id="descargarBtn" onclick="descargarImagen()">Descargar Imagen</button>
+                
+                <div id="successTip" class="success-tip">
+                    <p><strong>✅ Imagen descargada correctamente!</strong></p>
+                    <p>Para usarla en Gmail:</p>
+                    <ol>
+                        <li>Ve a Configuración ⚙️ > "Ver toda la configuración"</li>
+                        <li>Busca la sección "Firma"</li>
+                        <li>Haz clic en "Crear nueva"</li>
+                        <li>Haz clic en el botón "Insertar imagen" 🖼️</li>
+                        <li>Selecciona "Subir" y elige la imagen descargada</li>
+                        <li>Guarda los cambios</li>
+                    </ol>
+                </div>
+            </div>
+            
+            <div class="instrucciones">
+                <h3>Instrucciones:</h3>
+                <div class="metodo">
+                    <h4>Cómo usar tu firma personalizada</h4>
+                    <ol>
+                        <li>Completa tus datos en el formulario</li>
+                        <li>Haz clic en "Generar Mi Firma"</li>
+                        <li>Revisa la vista previa de tu firma</li>
+                        <li>Haz clic en "Descargar Imagen"</li>
+                        <li>La imagen se guardará en tu computadora</li>
+                        <li>Sigue las instrucciones que aparecerán para agregar la firma a Gmail</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const LOCAL_IMAGE_URL = 'firma-lab.png';
+
+        let backgroundImage = new Image();
+        backgroundImage.onload = () => console.log("Imagen local cargada");
+        backgroundImage.onerror = () => alert("No se pudo cargar firma-lab.png");
+        backgroundImage.src = LOCAL_IMAGE_URL;
+
+        function generarFirma() {
+            const nombre = document.getElementById('nombre').value || 'Nombre Apellido';
+            const cargo = document.getElementById('cargo').value || 'Cargo';
+            const telefono = document.getElementById('telefono').value || '+56 9 XXXX XXXX';
+            const email = document.getElementById('email').value || 'email@laboratoriochile.cl';
+            
+            const firmaHTML = `
+                <div class="preview-box">
+                    <img src="${LOCAL_IMAGE_URL}" class="background-image" alt="Fondo de firma">
+                    <div class="texto-firma">
+                        <p class="nombre-texto">${nombre}</p>
+                        <p class="cargo-texto">${cargo}</p>
+                        <p class="telefono-texto">Tel: ${telefono}</p>
+                        <p class="email-texto">${email}</p>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('placeholderMessage').style.display = 'none';
+            const vistaPrevia = document.getElementById('vistaPrevia');
+            vistaPrevia.innerHTML = firmaHTML;
+            vistaPrevia.style.display = 'block';
+            generarImagenCanvas(nombre, cargo, telefono, email);
+            document.getElementById('descargarBtn').style.display = 'block';
+            document.getElementById('successTip').style.display = 'none';
+        }
+
+        function generarImagenCanvas(nombre, cargo, telefono, email) {
+            const canvas = document.getElementById('firmaCanvas');
+            const ctx = canvas.getContext('2d');
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            try {
+                ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+            } catch (e) {
+                console.error("Error al dibujar la imagen:", e);
+                alert("Error al generar la imagen.");
+                return;
+            }
+
+            ctx.fillStyle = '#003399';
+            ctx.textAlign = 'left';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText(nombre, 20, 65);
+            ctx.font = '12px Arial';
+            ctx.fillText(cargo, 20, 85);
+            ctx.fillText('Tel: ' + telefono, 20, 105);
+            ctx.fillText(email, 20, 125);
+        }
+
+        function descargarImagen() {
+            const canvas = document.getElementById('firmaCanvas');
+            try {
+                const dataURL = canvas.toDataURL('image/png');
+                const downloadLink = document.createElement('a');
+                downloadLink.href = dataURL;
+                downloadLink.download = 'firma_laboratorio_chile.png';
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+                document.getElementById('successTip').style.display = 'block';
+            } catch (error) {
+                console.error("Error en descargarImagen:", error);
+                alert("Error al descargar la imagen: " + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
+
