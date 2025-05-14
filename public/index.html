@@ -157,11 +157,15 @@
     </div>
 
     <script>
-        const LOCAL_IMAGE_URL = 'firma-lab.png';
+        // Cambiado de PNG a SVG
+        const LOCAL_IMAGE_URL = 'firma-lab.svg';
 
         let backgroundImage = new Image();
-        backgroundImage.onload = () => console.log("Imagen local cargada");
-        backgroundImage.onerror = () => alert("No se pudo cargar firma-lab.png");
+        backgroundImage.onload = () => console.log("Imagen SVG cargada correctamente");
+        backgroundImage.onerror = (e) => {
+            console.error("Error al cargar la imagen SVG:", e);
+            alert("No se pudo cargar firma-lab.svg. Asegúrate de que el archivo exista en la misma carpeta que este HTML.");
+        };
         backgroundImage.src = LOCAL_IMAGE_URL;
 
         function generarFirma() {
@@ -191,31 +195,38 @@
             document.getElementById('successTip').style.display = 'none';
         }
 
-        function generarImagenCanvas(nombre, cargo, telefono, email) {
-            const canvas = document.getElementById('firmaCanvas');
-            const ctx = canvas.getContext('2d');
+	function generarImagenCanvas(nombre, cargo, telefono, email) {
+	    const canvas = document.getElementById('firmaCanvas');
+	    
+	    // Aumentar la resolución del canvas (2x o 3x)
+	    const escala = 3; // Factor de escala
+	    canvas.width = 500 * escala;
+	    canvas.height = 170 * escala;
+	    
+	    const ctx = canvas.getContext('2d');
+	    ctx.scale(escala, escala); // Escalar el contexto
+	    
+	    ctx.clearRect(0, 0, canvas.width/escala, canvas.height/escala);
+	    ctx.fillStyle = '#FFFFFF';
+	    ctx.fillRect(0, 0, canvas.width/escala, canvas.height/escala);
 
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#FFFFFF';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            try {
-                ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
-            } catch (e) {
-                console.error("Error al dibujar la imagen:", e);
-                alert("Error al generar la imagen.");
-                return;
-            }
-
-            ctx.fillStyle = '#003399';
-            ctx.textAlign = 'left';
-            ctx.font = 'bold 16px Arial';
-            ctx.fillText(nombre, 20, 65);
-            ctx.font = '12px Arial';
-            ctx.fillText(cargo, 20, 85);
-            ctx.fillText('Tel: ' + telefono, 20, 105);
-            ctx.fillText(email, 20, 125);
-        }
+	    try {
+		ctx.drawImage(backgroundImage, 0, 0, canvas.width/escala, canvas.height/escala);
+		
+		// Texto con el mismo formato (no necesita ser escalado porque ctx.scale ya lo hizo)
+		ctx.fillStyle = '#003399';
+		ctx.textAlign = 'left';
+		ctx.font = 'bold 16px Arial';
+		ctx.fillText(nombre, 20, 65);
+		ctx.font = '12px Arial';
+		ctx.fillText(cargo, 20, 85);
+		ctx.fillText('Tel: ' + telefono, 20, 105);
+		ctx.fillText(email, 20, 125);
+	    } catch (e) {
+		console.error("Error al dibujar:", e);
+		alert("Error al generar la imagen. Detalles: " + e.message);
+	    }
+	}
 
         function descargarImagen() {
             const canvas = document.getElementById('firmaCanvas');
@@ -236,4 +247,3 @@
     </script>
 </body>
 </html>
-
