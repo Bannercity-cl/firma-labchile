@@ -48,6 +48,13 @@
         .cargo-texto, .telefono-texto, .email-texto {
             font-size: 12px;
         }
+        .email-texto a {
+            color: #003399;
+            text-decoration: none;
+        }
+        .email-texto a:hover {
+            text-decoration: underline;
+        }
         .instrucciones {
             background-color: #f8f8f8;
             padding: 15px;
@@ -121,7 +128,8 @@
                 
                 <div id="vistaPrevia" style="display: none;"></div>
                 
-                <canvas id="firmaCanvas" width="500" height="170" style="display: none;"></canvas>
+                <!-- Canvas modificado para alta resolución pero manteniendo el mismo tamaño visual -->
+                <canvas id="firmaCanvas" width="1000" height="340" style="display: none; width: 500px; height: 170px;"></canvas>
                 
                 <button id="descargarBtn" onclick="descargarImagen()">Descargar Imagen</button>
                 
@@ -136,6 +144,7 @@
                         <li>Selecciona "Subir" y elige la imagen descargada</li>
                         <li>Guarda los cambios</li>
                     </ol>
+                    <p><strong>Nota importante:</strong> La versión descargada como imagen no tendrá el enlace mailto: activo. Para tener un email clickeable, deberás añadir manualmente un enlace a tu dirección de correo en tu cliente de email después de insertar la imagen.</p>
                 </div>
             </div>
             
@@ -152,19 +161,40 @@
                         <li>Sigue las instrucciones que aparecerán para agregar la firma a Gmail</li>
                     </ol>
                 </div>
+                <div class="metodo">
+                    <h4>Para tener un email clickeable en tu firma</h4>
+                    <p>Opción 1: Usar HTML en tu cliente de correo</p>
+                    <ol>
+                        <li>En Gmail u otro cliente, después de insertar la imagen de la firma</li>
+                        <li>Escribe tu dirección de correo debajo de la imagen</li>
+                        <li>Selecciona la dirección y usa la opción "Insertar enlace"</li>
+                        <li>Introduce "mailto:tu-correo@dominio.com" como URL</li>
+                    </ol>
+                    <p>Opción 2: Usar el código HTML de la firma</p>
+                    <ol>
+                        <li>Para clientes de correo que aceptan HTML, puedes copiar el código HTML haciendo clic derecho en la vista previa y seleccionando "Inspeccionar"</li>
+                        <li>Copia el HTML y pégalo en tu cliente de correo (si lo permite)</li>
+                    </ol>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Cambiado de PNG a SVG
-        const LOCAL_IMAGE_URL = 'firma-lab.svg';
+        // Cambiar a la versión de alta resolución de la imagen
+        const LOCAL_IMAGE_URL = 'firma-lab-hires.png';
+
+        // Función para detectar la densidad de píxeles del dispositivo
+        function getDevicePixelRatio() {
+            return window.devicePixelRatio || 1;
+        }
 
         let backgroundImage = new Image();
-        backgroundImage.onload = () => console.log("Imagen SVG cargada correctamente");
-        backgroundImage.onerror = (e) => {
-            console.error("Error al cargar la imagen SVG:", e);
-            alert("No se pudo cargar firma-lab.svg. Asegúrate de que el archivo exista en la misma carpeta que este HTML.");
+        backgroundImage.onload = () => console.log("Imagen local de alta resolución cargada");
+        backgroundImage.onerror = () => {
+            console.error("No se pudo cargar firma-lab-hires.png, intentando con la imagen original");
+            backgroundImage.src = 'firma-lab.png';
+            backgroundImage.onerror = () => alert("No se pudo cargar ninguna imagen de fondo");
         };
         backgroundImage.src = LOCAL_IMAGE_URL;
 
@@ -174,6 +204,7 @@
             const telefono = document.getElementById('telefono').value || '+56 9 XXXX XXXX';
             const email = document.getElementById('email').value || 'email@laboratoriochile.cl';
             
+            // Añadir enlace mailto: para hacer el email clickeable en la vista previa
             const firmaHTML = `
                 <div class="preview-box">
                     <img src="${LOCAL_IMAGE_URL}" class="background-image" alt="Fondo de firma">
@@ -181,7 +212,7 @@
                         <p class="nombre-texto">${nombre}</p>
                         <p class="cargo-texto">${cargo}</p>
                         <p class="telefono-texto">Tel: ${telefono}</p>
-                        <p class="email-texto">${email}</p>
+                        <p class="email-texto"><a href="mailto:${email}">${email}</a></p>
                     </div>
                 </div>
             `;
@@ -195,43 +226,69 @@
             document.getElementById('successTip').style.display = 'none';
         }
 
-	function generarImagenCanvas(nombre, cargo, telefono, email) {
-	    const canvas = document.getElementById('firmaCanvas');
-	    
-	    // Aumentar la resolución del canvas (2x o 3x)
-	    const escala = 3; // Factor de escala
-	    canvas.width = 500 * escala;
-	    canvas.height = 170 * escala;
-	    
-	    const ctx = canvas.getContext('2d');
-	    ctx.scale(escala, escala); // Escalar el contexto
-	    
-	    ctx.clearRect(0, 0, canvas.width/escala, canvas.height/escala);
-	    ctx.fillStyle = '#FFFFFF';
-	    ctx.fillRect(0, 0, canvas.width/escala, canvas.height/escala);
+        function generarImagenCanvas(nombre, cargo, telefono, email) {
+            const canvas = document.getElementById('firmaCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Obtener la densidad de píxeles del dispositivo
+            const dpr = getDevicePixelRatio();
+            
+            // Guardar las dimensiones originales del canvas para la visualización
+            const originalWidth = 500; // Ancho visual deseado
+            const originalHeight = 170; // Alto visual deseado
+            
+            // Establecer el tamaño real del canvas con mayor resolución
+            // Nota: Ya establecimos el tamaño en el HTML (1000x340)
+            
+            // Mantener el tamaño de visualización original usando CSS
+            canvas.style.width = originalWidth + 'px';
+            canvas.style.height = originalHeight + 'px';
+            
+            // Escalar el contexto de acuerdo a la relación entre tamaño físico y visual
+            const scaleX = canvas.width / originalWidth;
+            const scaleY = canvas.height / originalHeight;
+            ctx.scale(scaleX, scaleY);
+            
+            // Limpiar el canvas
+            ctx.clearRect(0, 0, originalWidth, originalHeight);
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, originalWidth, originalHeight);
 
-	    try {
-		ctx.drawImage(backgroundImage, 0, 0, canvas.width/escala, canvas.height/escala);
-		
-		// Texto con el mismo formato (no necesita ser escalado porque ctx.scale ya lo hizo)
-		ctx.fillStyle = '#003399';
-		ctx.textAlign = 'left';
-		ctx.font = 'bold 16px Arial';
-		ctx.fillText(nombre, 20, 65);
-		ctx.font = '12px Arial';
-		ctx.fillText(cargo, 20, 85);
-		ctx.fillText('Tel: ' + telefono, 20, 105);
-		ctx.fillText(email, 20, 125);
-	    } catch (e) {
-		console.error("Error al dibujar:", e);
-		alert("Error al generar la imagen. Detalles: " + e.message);
-	    }
-	}
+            try {
+                // Dibujar la imagen de fondo
+                ctx.drawImage(backgroundImage, 0, 0, originalWidth, originalHeight);
+            } catch (e) {
+                console.error("Error al dibujar la imagen:", e);
+                alert("Error al generar la imagen.");
+                return;
+            }
+
+            // Configurar el estilo del texto
+            ctx.fillStyle = '#003399';
+            ctx.textAlign = 'left';
+            
+            // Renderizar el texto con calidad mejorada
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText(nombre, 20, 65);
+            ctx.font = '12px Arial';
+            ctx.fillText(cargo, 20, 85);
+            ctx.fillText('Tel: ' + telefono, 20, 105);
+            
+            // Añadir subrayado sutil para indicar que el email es clickeable (simulación visual)
+            ctx.fillText(email, 20, 125);
+            ctx.beginPath();
+            ctx.moveTo(20, 127);
+            ctx.lineTo(20 + ctx.measureText(email).width, 127);
+            ctx.strokeStyle = '#003399';
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+        }
 
         function descargarImagen() {
             const canvas = document.getElementById('firmaCanvas');
             try {
-                const dataURL = canvas.toDataURL('image/png');
+                // Usar 1.0 como calidad para PNG (máxima calidad)
+                const dataURL = canvas.toDataURL('image/png', 1.0);
                 const downloadLink = document.createElement('a');
                 downloadLink.href = dataURL;
                 downloadLink.download = 'firma_laboratorio_chile.png';
@@ -243,6 +300,39 @@
                 console.error("Error en descargarImagen:", error);
                 alert("Error al descargar la imagen: " + error.message);
             }
+        }
+        
+        // Generar versión HTML de la firma para poder ser copiada
+        function generarHTMLFirma() {
+            const nombre = document.getElementById('nombre').value || 'Nombre Apellido';
+            const cargo = document.getElementById('cargo').value || 'Cargo';
+            const telefono = document.getElementById('telefono').value || '+56 9 XXXX XXXX';
+            const email = document.getElementById('email').value || 'email@laboratoriochile.cl';
+            
+            return `
+            <table cellpadding="0" cellspacing="0" border="0" style="width: 500px; height: 170px; background-color: #ffffff;">
+                <tr>
+                    <td style="width: 500px; height: 170px; background-image: url('${window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1)}${LOCAL_IMAGE_URL}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
+                        <table cellpadding="0" cellspacing="0" border="0" style="margin-left: 20px; margin-top: 50px;">
+                            <tr>
+                                <td style="font-family: Arial, sans-serif; font-size: 16px; font-weight: bold; color: #003399;">${nombre}</td>
+                            </tr>
+                            <tr>
+                                <td style="font-family: Arial, sans-serif; font-size: 12px; color: #003399; padding-top: 6px;">${cargo}</td>
+                            </tr>
+                            <tr>
+                                <td style="font-family: Arial, sans-serif; font-size: 12px; color: #003399; padding-top: 3px;">Tel: ${telefono}</td>
+                            </tr>
+                            <tr>
+                                <td style="font-family: Arial, sans-serif; font-size: 12px; color: #003399; padding-top: 3px;">
+                                    <a href="mailto:${email}" style="color: #003399; text-decoration: none;">${email}</a>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+            `;
         }
     </script>
 </body>
