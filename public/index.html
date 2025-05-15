@@ -48,13 +48,6 @@
         .cargo-texto, .telefono-texto, .email-texto {
             font-size: 12px;
         }
-        .email-texto a {
-            color: #003399;
-            text-decoration: none;
-        }
-        .email-texto a:hover {
-            text-decoration: underline;
-        }
         .instrucciones {
             background-color: #f8f8f8;
             padding: 15px;
@@ -144,7 +137,6 @@
                         <li>Selecciona "Subir" y elige la imagen descargada</li>
                         <li>Guarda los cambios</li>
                     </ol>
-                    <p><strong>Nota importante:</strong> La versión descargada como imagen no tendrá el enlace mailto: activo. Para tener un email clickeable, deberás añadir manualmente un enlace a tu dirección de correo en tu cliente de email después de insertar la imagen.</p>
                 </div>
             </div>
             
@@ -159,21 +151,6 @@
                         <li>Haz clic en "Descargar Imagen"</li>
                         <li>La imagen se guardará en tu computadora</li>
                         <li>Sigue las instrucciones que aparecerán para agregar la firma a Gmail</li>
-                    </ol>
-                </div>
-                <div class="metodo">
-                    <h4>Para tener un email clickeable en tu firma</h4>
-                    <p>Opción 1: Usar HTML en tu cliente de correo</p>
-                    <ol>
-                        <li>En Gmail u otro cliente, después de insertar la imagen de la firma</li>
-                        <li>Escribe tu dirección de correo debajo de la imagen</li>
-                        <li>Selecciona la dirección y usa la opción "Insertar enlace"</li>
-                        <li>Introduce "mailto:tu-correo@dominio.com" como URL</li>
-                    </ol>
-                    <p>Opción 2: Usar el código HTML de la firma</p>
-                    <ol>
-                        <li>Para clientes de correo que aceptan HTML, puedes copiar el código HTML haciendo clic derecho en la vista previa y seleccionando "Inspeccionar"</li>
-                        <li>Copia el HTML y pégalo en tu cliente de correo (si lo permite)</li>
                     </ol>
                 </div>
             </div>
@@ -204,7 +181,6 @@
             const telefono = document.getElementById('telefono').value || '+56 9 XXXX XXXX';
             const email = document.getElementById('email').value || 'email@laboratoriochile.cl';
             
-            // Añadir enlace mailto: para hacer el email clickeable en la vista previa
             const firmaHTML = `
                 <div class="preview-box">
                     <img src="${LOCAL_IMAGE_URL}" class="background-image" alt="Fondo de firma">
@@ -212,7 +188,7 @@
                         <p class="nombre-texto">${nombre}</p>
                         <p class="cargo-texto">${cargo}</p>
                         <p class="telefono-texto">Tel: ${telefono}</p>
-                        <p class="email-texto"><a href="mailto:${email}">${email}</a></p>
+                        <p class="email-texto">${email}</p>
                     </div>
                 </div>
             `;
@@ -273,15 +249,7 @@
             ctx.font = '12px Arial';
             ctx.fillText(cargo, 20, 85);
             ctx.fillText('Tel: ' + telefono, 20, 105);
-            
-            // Añadir subrayado sutil para indicar que el email es clickeable (simulación visual)
             ctx.fillText(email, 20, 125);
-            ctx.beginPath();
-            ctx.moveTo(20, 127);
-            ctx.lineTo(20 + ctx.measureText(email).width, 127);
-            ctx.strokeStyle = '#003399';
-            ctx.lineWidth = 0.5;
-            ctx.stroke();
         }
 
         function descargarImagen() {
@@ -300,39 +268,6 @@
                 console.error("Error en descargarImagen:", error);
                 alert("Error al descargar la imagen: " + error.message);
             }
-        }
-        
-        // Generar versión HTML de la firma para poder ser copiada
-        function generarHTMLFirma() {
-            const nombre = document.getElementById('nombre').value || 'Nombre Apellido';
-            const cargo = document.getElementById('cargo').value || 'Cargo';
-            const telefono = document.getElementById('telefono').value || '+56 9 XXXX XXXX';
-            const email = document.getElementById('email').value || 'email@laboratoriochile.cl';
-            
-            return `
-            <table cellpadding="0" cellspacing="0" border="0" style="width: 500px; height: 170px; background-color: #ffffff;">
-                <tr>
-                    <td style="width: 500px; height: 170px; background-image: url('${window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1)}${LOCAL_IMAGE_URL}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
-                        <table cellpadding="0" cellspacing="0" border="0" style="margin-left: 20px; margin-top: 50px;">
-                            <tr>
-                                <td style="font-family: Arial, sans-serif; font-size: 16px; font-weight: bold; color: #003399;">${nombre}</td>
-                            </tr>
-                            <tr>
-                                <td style="font-family: Arial, sans-serif; font-size: 12px; color: #003399; padding-top: 6px;">${cargo}</td>
-                            </tr>
-                            <tr>
-                                <td style="font-family: Arial, sans-serif; font-size: 12px; color: #003399; padding-top: 3px;">Tel: ${telefono}</td>
-                            </tr>
-                            <tr>
-                                <td style="font-family: Arial, sans-serif; font-size: 12px; color: #003399; padding-top: 3px;">
-                                    <a href="mailto:${email}" style="color: #003399; text-decoration: none;">${email}</a>
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-            </table>
-            `;
         }
     </script>
 </body>
